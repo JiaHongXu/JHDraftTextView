@@ -36,7 +36,12 @@
     
     _draftView = [[JHDraftTextView alloc] initWithFrame:self.view.frame];
     [_draftView setAttributedTextWithDraftJsonDic:jsonDic];
+    _draftView.editable = NO;
     [self.view addSubview:_draftView];
+}
+
+- (void)viewWillLayoutSubviews {
+    _draftView.frame = self.view.bounds;
 }
 
 - (void)handleTap:(UITapGestureRecognizer*)tapRecognizer {

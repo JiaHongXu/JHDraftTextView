@@ -12,6 +12,7 @@
 @interface JHDraftTextView () <JHDraftParserDelegate>
 
 @property (nonatomic, strong) JHDraftParser *parser;
+@property (nonatomic, strong) NSMutableArray<CALayer *> *drawLayers;
 
 @end
 
@@ -21,21 +22,17 @@
 
 - (instancetype)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
-        [self setup];
+        
     }
     
     return self;
-}
-
-- (void)setup {
-    self.editable = NO;
-    self.selectable = NO;
 }
 
 #pragma mark - Public Methods
 
 - (void)setAttributedTextWithDraftJsonDic:(NSDictionary *)jsonDic {
     self.attributedText = [self.parser attributedStringWithDraftJsonDic:jsonDic];
+    [self _performDrawTasks:self.parser.parserDrawTasks];
 }
 
 - (NSString *)wordAtPoint:(CGPoint)point {
@@ -81,9 +78,57 @@
 
 #pragma mark - Private Methods
 
+- (void)_performDrawTasks:(NSArray<JHParserDrawTask *> *)drawTasks {
+    if (!drawTasks&&drawTasks.count==0) {
+        return;
+    }
+
+    for (CALayer *layers in self.drawLayers) {
+        [layers removeFromSuperlayer];
+    }
+    
+    for (JHParserDrawTask *task in drawTasks) {
+        CGRect firstLineRect = [self.layoutManager lineFragmentRectForGlyphAtIndex:task.fisrtIndex effectiveRange:nil];
+        CGRect lastLineRect = [self.layoutManager lineFragmentRectForGlyphAtIndex:task.lastIndex effectiveRange:nil];
+        CGRect scaleRect = CGRectMake(CGRectGetMinX(firstLineRect), CGRectGetMinY(firstLineRect), CGRectGetWidth(firstLineRect), CGRectGetMaxY(lastLineRect)-CGRectGetMinY(firstLineRect));
+        switch (task.type) {
+            case JHDraftTextTypeCodeQuote:
+            {
+                CGRect quoteBackground = CGRectMake(scaleRect.origin.x+5, scaleRect.origin.y, CGRectGetWidth(scaleRect)-5*2, scaleRect.size.height+5);
+                CALayer *quoteBackgroundLayer = [[CALayer alloc] init];
+                quoteBackgroundLayer.backgroundColor = [UIColor colorWithWhite:0.5 alpha:0.1].CGColor;
+                quoteBackgroundLayer.frame = quoteBackground;
+                [self.layer insertSublayer:quoteBackgroundLayer atIndex:(unsigned)self.layer.sublayers.count];
+                
+                [self.drawLayers addObject:quoteBackgroundLayer];
+            }
+                break;
+            case JHDraftTextTypeBlockQuote:
+            {
+                CGRect quoteLine = CGRectMake(scaleRect.origin.x+5, scaleRect.origin.y, 5, scaleRect.size.height-5);
+                CALayer *quoteLineLayer = [[CALayer alloc] init];
+                quoteLineLayer.backgroundColor = [UIColor colorWithWhite:0.2 alpha:0.5].CGColor;
+                quoteLineLayer.frame = quoteLine;
+                [self.layer insertSublayer:quoteLineLayer atIndex:(unsigned)self.layer.sublayers.count];
+                [self.drawLayers addObject:quoteLineLayer];
+                
+                CGRect quoteBackground = CGRectMake(scaleRect.origin.x+5, scaleRect.origin.y, CGRectGetWidth(scaleRect)-5, scaleRect.size.height-5);
+                CALayer *quoteBackgroundLayer = [[CALayer alloc] init];
+                quoteBackgroundLayer.backgroundColor = [UIColor colorWithWhite:0.5 alpha:0.1].CGColor;
+                quoteBackgroundLayer.frame = quoteBackground;
+                [self.layer insertSublayer:quoteBackgroundLayer atIndex:(unsigned)self.layer.sublayers.count];
+                [self.drawLayers addObject:quoteBackgroundLayer];
+            }
+                break;
+                
+            default:
+                break;
+        }
+    }
+}
+
 - (NSUInteger)_charIndexAtPoint:(CGPoint)point {
     NSLayoutManager *layoutManager = self.layoutManager;
-    NSTextStorage *textStorage = layoutManager.textStorage;
     NSTextContainer *textContainer = self.textContainer;
     
     // to best fits the hit point
@@ -120,6 +165,14 @@
     }
     
     return _parser;
+}
+
+- (NSMutableArray<CALayer *> *)drawLayers {
+    if (!_drawLayers) {
+        _drawLayers = [[NSMutableArray alloc] initWithCapacity:0];
+    }
+    
+    return _drawLayers;
 }
 
 @end

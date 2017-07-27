@@ -9,10 +9,20 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
+#import "JHDraftDataSource.h"
+
 @protocol JHDraftParserDelegate <NSObject>
 
-@optional
+@required
 - (void)didUpdateAttributeText;
+
+@end
+
+@interface JHParserDrawTask : NSObject
+
+@property (nonatomic, assign) JHDraftTextType type;
+@property (nonatomic, assign) NSUInteger fisrtIndex;
+@property (nonatomic, assign) NSUInteger lastIndex;
 
 @end
 
@@ -22,5 +32,6 @@
 
 - (NSAttributedString *)attributeString;
 - (NSAttributedString *)attributedStringWithDraftJsonDic:(NSDictionary *)jsonDic;
+- (NSArray<JHParserDrawTask *> *)parserDrawTasks;
 
 @end

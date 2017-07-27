@@ -7,12 +7,12 @@
 //
 
 #import "JHDraftParser.h"
-#import "JHDraftDataSource.h"
 
 #import <SDWebImage/SDWebImageManager.h>
 
 @interface JHDraftParser ()
 @property (nonatomic, strong) NSMutableAttributedString *mutableAttrStr;
+@property (nonatomic, strong) NSMutableArray<JHParserDrawTask *> *drawTasks;
 @end
 
 @implementation JHDraftParser
@@ -24,6 +24,10 @@
     NSArray<JHDraftBlock *> *blocks = [JHDraftDataSource blocksFromJsonDic:jsonDic];
     
     return [self _attributeStringWithBlocks:blocks entityMap:entityMap];
+}
+
+- (NSArray<JHParserDrawTask *> *)parserDrawTasks {
+    return [self.drawTasks copy];
 }
 
 #pragma mark - Private Methods
@@ -113,14 +117,25 @@
             paragraph.lineSpacing = 8;
             paragraph.paragraphSpacing = 16;
             paragraph.alignment = NSTextAlignmentLeft;
+            JHParserDrawTask *drawTask = [[JHParserDrawTask alloc] init];
+            drawTask.type = JHDraftTextTypeBlockQuote;
+            drawTask.fisrtIndex = _mutableAttrStr.length+1;
+            drawTask.lastIndex = drawTask.fisrtIndex + attrStr.length - 1;
+            [self.drawTasks addObject:drawTask];
         }
             break;
         case JHDraftTextTypeCodeQuote:
         {
-            paragraph.headIndent = 8;
-            paragraph.lineSpacing = 0;
+            paragraph.headIndent = 16;
+            paragraph.firstLineHeadIndent = 16;
+            paragraph.lineSpacing = 8;
             paragraph.paragraphSpacing = 0;
             paragraph.alignment = NSTextAlignmentLeft;
+            JHParserDrawTask *drawTask = [[JHParserDrawTask alloc] init];
+            drawTask.type = JHDraftTextTypeCodeQuote;
+            drawTask.fisrtIndex = _mutableAttrStr.length+1;
+            drawTask.lastIndex = drawTask.fisrtIndex + attrStr.length - 1;
+            [self.drawTasks addObject:drawTask];
         }
             break;
         case JHDraftTextTypeOrderListItem:
@@ -211,5 +226,17 @@
     }
     return [_mutableAttrStr copy];
 }
+
+- (NSMutableArray<JHParserDrawTask *> *)drawTasks {
+    if (!_drawTasks) {
+        _drawTasks = [[NSMutableArray alloc] initWithCapacity:0];
+    }
+    
+    return _drawTasks;
+}
+
+@end
+
+@implementation JHParserDrawTask
 
 @end

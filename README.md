@@ -13,8 +13,14 @@ a subclass of UITextView to parse Draft.js json to rich text
 * [Link](https://github.com/JiaHongXu)
 * **Bold**, *Italic*, ***Bold+Italic***
 * ~~Stroke Through~~
-* Code Quote (e…doing)
-* Block Quote (e…doing)
+* Code Quote 
+* Block Quote 
+
+## Problems Remain
+
+The method I applied to draw code quote & block quote may lead to display problems while changing the screens orientation
+
+If you have better solution, mail me please. ^_^ at [xjh\_28@163.com](xjh\_28@163.com)
 
 ## Run
 
