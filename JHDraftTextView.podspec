@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "JHDraftTextView"
-  s.version      = "0.0.1"
+  s.version      = "1.0.0"
   s.summary      = "Subclass of UITextView to translate draft.js json to attributed text and shown"
 
   # This description is used to generate tags and improve search results.
@@ -25,6 +25,7 @@ Pod::Spec.new do |s|
   #   * Write the description between the DESC delimiters below.
   #   * Finally, don't worry about the indent, CocoaPods strips it!
   s.description  = <<-DESC
+  Subclass of UITextView to translate draft.js json to attributed text and shown
                    DESC
 
   s.homepage     = "https://github.com/JiaHongXu/JHDraftTextView"
@@ -38,7 +39,7 @@ Pod::Spec.new do |s|
   #  Popular ones are 'MIT', 'BSD' and 'Apache License, Version 2.0'.
   #
 
-  s.license      = "MIT (example)"
+  s.license      = "MIT"
   # s.license      = { :type => "MIT", :file => "FILE_LICENSE" }
 
 
@@ -77,7 +78,7 @@ Pod::Spec.new do |s|
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  s.source       = { :git => "https://github.com/JiaHongXu/JHDraftTextView.git", :tag => "#{s.version}" }
+  s.source       = { :git => "https://github.com/JiaHongXu/JHDraftTextView.git", :tag => "1.0.0" }
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #

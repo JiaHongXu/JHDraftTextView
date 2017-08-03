@@ -13,6 +13,13 @@
 @interface JHDraftParser ()
 @property (nonatomic, strong) NSMutableAttributedString *mutableAttrStr;
 @property (nonatomic, strong) NSMutableArray<JHParserDrawTask *> *drawTasks;
+
+// <@(JHDraftTextType), NSParagraphStyle*>
+@property (nonatomic, strong) NSDictionary<NSNumber *, NSParagraphStyle *> *paragraphStyles;
+// <@(JHDraftTextType), NSString *>
+@property (nonatomic, strong) NSDictionary<NSNumber *,NSString *> *fonts;
+// <@(JHDraftTextType), @(CGFloat)>
+@property (nonatomic, strong) NSDictionary<NSNumber *,NSNumber *> *fontSizes;
 @end
 
 @implementation JHDraftParser
@@ -50,20 +57,8 @@
 - (NSAttributedString *)_attributeStringWithBlock:(JHDraftBlock *)block entityMap:(NSDictionary<NSString *, JHDraftEntity *> *)entityMap {
     NSMutableAttributedString *attrStr = [[NSMutableAttributedString alloc] initWithString:block.text];
     
-    CGFloat bodyFontSize = 17;
-    CGFloat fontSize = [@{@(JHDraftTextTypeNone) : @(bodyFontSize),
-                          @(JHDraftTextTypeH1) : @(bodyFontSize*2.0),
-                          @(JHDraftTextTypeH2) : @(bodyFontSize*1.7),
-                          @(JHDraftTextTypeH3) : @(bodyFontSize*1.4),
-                          @(JHDraftTextTypeH4) : @(bodyFontSize*1.2),
-                          @(JHDraftTextTypeH5) : @(bodyFontSize*1),
-                          @(JHDraftTextTypeH6) : @(bodyFontSize*0.8),
-                          @(JHDraftTextTypeOrderListItem) : @(bodyFontSize),
-                          @(JHDraftTextTypeUnorderListItem) : @(bodyFontSize),
-                          @(JHDraftTextTypeBlockQuote) : @(bodyFontSize),
-                          @(JHDraftTextTypeCodeQuote) : @(bodyFontSize),
-                          @(JHDraftTextTypeAtomic) : @(bodyFontSize),}[@(block.type)] doubleValue];
-    [attrStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"Helvetica" size:fontSize] range:NSMakeRange(0, block.text.length)];
+    CGFloat fontSize = [self.fontSizes[@(block.type)] doubleValue];
+    [attrStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:self.fonts[@(JHDraftTextStyleNone)] size:fontSize] range:NSMakeRange(0, block.text.length)];
     
     // 配置局部字体样式
     for (JHDraftStyleRange *styleRange in block.inlineStyleRanges) {
@@ -71,13 +66,13 @@
         NSRange range = NSMakeRange(styleRange.offset, styleRange.length);
         if ((styleRange.style & JHDraftTextStyleBold) && (styleRange.style & JHDraftTextStyleItalic)) {
             // 又斜又粗
-            [attrStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"Helvetica-BoldOblique" size:fontSize] range:range];
+            [attrStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:self.fonts[@(JHDraftTextStyleBold&JHDraftTextStyleItalic)] size:fontSize] range:range];
         } else if (styleRange.style & JHDraftTextStyleBold) {
             // 粗体
-            [attrStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"Helvetica-Bold" size:fontSize] range:range];
+            [attrStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:self.fonts[@(JHDraftTextStyleBold)] size:fontSize] range:range];
         } else if (styleRange.style & JHDraftTextStyleItalic) {
             // 斜体
-            [attrStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:@"Helvetica-Oblique" size:fontSize] range:range];
+            [attrStr addAttribute:NSFontAttributeName value:[UIFont fontWithName:self.fonts[@(JHDraftTextStyleItalic)] size:fontSize] range:range];
         }
         
         if (styleRange.style & JHDraftTextStyleStrikeThrough) {
@@ -95,7 +90,7 @@
     }
     
     // 配置整体段落样式
-    NSMutableParagraphStyle *paragraph = [[NSMutableParagraphStyle alloc]init];
+    NSMutableParagraphStyle *paragraph = [[NSMutableParagraphStyle alloc] init];
     switch (block.type) {
         case JHDraftTextTypeH1:
         case JHDraftTextTypeH2:
@@ -104,19 +99,13 @@
         case JHDraftTextTypeH5:
         case JHDraftTextTypeH6:
         {
-            paragraph.headIndent = 0;
-            paragraph.lineSpacing = 8;
-            paragraph.paragraphSpacing = 16;
-            paragraph.alignment = NSTextAlignmentLeft;
+            paragraph = [self.paragraphStyles[@(block.type)] mutableCopy];
         }
             break;
         case JHDraftTextTypeBlockQuote:
         {
-            paragraph.headIndent = 16;
-            paragraph.firstLineHeadIndent = 16;
-            paragraph.lineSpacing = 8;
-            paragraph.paragraphSpacing = 16;
-            paragraph.alignment = NSTextAlignmentLeft;
+            paragraph = [self.paragraphStyles[@(block.type)] mutableCopy];
+            
             JHParserDrawTask *drawTask = [[JHParserDrawTask alloc] init];
             drawTask.type = JHDraftTextTypeBlockQuote;
             drawTask.fisrtIndex = _mutableAttrStr.length+1;
@@ -126,11 +115,8 @@
             break;
         case JHDraftTextTypeCodeQuote:
         {
-            paragraph.headIndent = 16;
-            paragraph.firstLineHeadIndent = 16;
-            paragraph.lineSpacing = 8;
-            paragraph.paragraphSpacing = 0;
-            paragraph.alignment = NSTextAlignmentLeft;
+            paragraph = [self.paragraphStyles[@(block.type)] mutableCopy];
+            
             JHParserDrawTask *drawTask = [[JHParserDrawTask alloc] init];
             drawTask.type = JHDraftTextTypeCodeQuote;
             drawTask.fisrtIndex = _mutableAttrStr.length+1;
@@ -142,16 +128,16 @@
         case JHDraftTextTypeUnorderListItem:
         {
             CGFloat headIndent = 32*(1+block.depth);
-            paragraph.lineSpacing = 8;
-            paragraph.paragraphSpacing = 16;
-            paragraph.alignment = NSTextAlignmentLeft;
+            paragraph = [self.paragraphStyles[@(block.type)] mutableCopy];
             
             NSAttributedString *prefixStr = nil;
             CGSize size;
             if (block.type == JHDraftTextTypeOrderListItem) {
-                prefixStr = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%ld. ", block.order] attributes:@{NSFontAttributeName:[UIFont fontWithName:@"Helvetica" size:fontSize]}];
+                prefixStr = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%ld. ", block.order]
+                                                            attributes:@{NSFontAttributeName:[UIFont fontWithName:self.fonts[@(JHDraftTextStyleNone)] size:fontSize]}];
             } else {
-                prefixStr = [[NSAttributedString alloc] initWithString:@"• " attributes:@{NSFontAttributeName:[UIFont fontWithName:@"Helvetica" size:fontSize]}];
+                prefixStr = [[NSAttributedString alloc] initWithString:@"• "
+                                                            attributes:@{NSFontAttributeName:[UIFont fontWithName:self.fonts[@(JHDraftTextStyleNone)] size:fontSize]}];
             }
             UILabel *prefixLabel = [[UILabel alloc] init];
             prefixLabel.attributedText = prefixStr;
@@ -181,13 +167,12 @@
                 NSAttributedString *attachmentStr = [NSAttributedString attributedStringWithAttachment:attachment];
                 [attrStr appendAttributedString:attachmentStr];
             }
+            break;
         }
         case JHDraftTextTypeNone:
         default:
         {
-            paragraph.lineSpacing = 8;
-            paragraph.paragraphSpacing = 16;
-            paragraph.alignment = NSTextAlignmentLeft;
+            paragraph = [self.paragraphStyles[@(block.type)] mutableCopy];
         }
             break;
     }
@@ -233,6 +218,89 @@
     }
     
     return _drawTasks;
+}
+
+- (NSDictionary<NSNumber *, NSParagraphStyle *> *)paragraphStyles {
+    if (!_paragraphStyles) {
+        NSMutableParagraphStyle *titleStyle = [[NSMutableParagraphStyle alloc] init];
+        titleStyle.headIndent = 0;
+        titleStyle.lineSpacing = 8;
+        titleStyle.paragraphSpacing = 16;
+        titleStyle.alignment = NSTextAlignmentLeft;
+        
+        NSMutableParagraphStyle *blockQuoteStyle = [[NSMutableParagraphStyle alloc] init];
+        blockQuoteStyle.headIndent = 16;
+        blockQuoteStyle.firstLineHeadIndent = 16;
+        blockQuoteStyle.lineSpacing = 8;
+        blockQuoteStyle.paragraphSpacing = 16;
+        blockQuoteStyle.alignment = NSTextAlignmentLeft;
+        
+        NSMutableParagraphStyle *codeQuoteStyle = [[NSMutableParagraphStyle alloc] init];
+        codeQuoteStyle.headIndent = 16;
+        codeQuoteStyle.firstLineHeadIndent = 16;
+        codeQuoteStyle.lineSpacing = 8;
+        codeQuoteStyle.paragraphSpacing = 0;
+        codeQuoteStyle.alignment = NSTextAlignmentLeft;
+        
+        NSMutableParagraphStyle *listItemStyle = [[NSMutableParagraphStyle alloc] init];
+        listItemStyle.lineSpacing = 8;
+        listItemStyle.paragraphSpacing = 16;
+        listItemStyle.alignment = NSTextAlignmentLeft;
+        
+        NSMutableParagraphStyle *noneStyle = [[NSMutableParagraphStyle alloc] init];
+        noneStyle.lineSpacing = 8;
+        noneStyle.paragraphSpacing = 16;
+        noneStyle.alignment = NSTextAlignmentLeft;
+        
+        _paragraphStyles = @{
+                             @(JHDraftTextTypeH1):[titleStyle copy],
+                             @(JHDraftTextTypeH2):[titleStyle copy],
+                             @(JHDraftTextTypeH3):[titleStyle copy],
+                             @(JHDraftTextTypeH4):[titleStyle copy],
+                             @(JHDraftTextTypeH5):[titleStyle copy],
+                             @(JHDraftTextTypeH6):[titleStyle copy],
+                             @(JHDraftTextTypeBlockQuote):[blockQuoteStyle copy],
+                             @(JHDraftTextTypeCodeQuote):[codeQuoteStyle copy],
+                             @(JHDraftTextTypeOrderListItem):[listItemStyle copy],
+                             @(JHDraftTextTypeUnorderListItem):[listItemStyle copy],
+                             @(JHDraftTextTypeNone):[noneStyle copy]
+                             };
+    }
+    
+    return _paragraphStyles;
+}
+
+- (NSDictionary<NSNumber *, NSString *> *)fonts {
+    if (!_fonts) {
+        _fonts = @{
+                   @(JHDraftTextStyleNone):@"Helvetica",
+                   @(JHDraftTextStyleBold):@"Helvetica-Bold",
+                   @(JHDraftTextStyleItalic):@"Helvetica-Oblique",
+                   @(JHDraftTextStyleBold&JHDraftTextStyleItalic):@"Helvetica-BoldOblique"};
+    }
+    
+    return _fonts;
+}
+
+- (NSDictionary<NSNumber *, NSNumber *> *)fontSizes {
+    if (!_fontSizes) {
+        CGFloat bodyFontSize = 17;
+        _fontSizes = @{
+                       @(JHDraftTextTypeNone) : @(bodyFontSize),
+                       @(JHDraftTextTypeH1) : @(bodyFontSize*2.0),
+                       @(JHDraftTextTypeH2) : @(bodyFontSize*1.7),
+                       @(JHDraftTextTypeH3) : @(bodyFontSize*1.4),
+                       @(JHDraftTextTypeH4) : @(bodyFontSize*1.2),
+                       @(JHDraftTextTypeH5) : @(bodyFontSize*1),
+                       @(JHDraftTextTypeH6) : @(bodyFontSize*0.8),
+                       @(JHDraftTextTypeOrderListItem) : @(bodyFontSize),
+                       @(JHDraftTextTypeUnorderListItem) : @(bodyFontSize),
+                       @(JHDraftTextTypeBlockQuote) : @(bodyFontSize),
+                       @(JHDraftTextTypeCodeQuote) : @(bodyFontSize),
+                       @(JHDraftTextTypeAtomic) : @(bodyFontSize),};
+    }
+    
+    return _fontSizes;
 }
 
 @end
