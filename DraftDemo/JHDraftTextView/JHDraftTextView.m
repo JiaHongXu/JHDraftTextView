@@ -74,13 +74,32 @@
     return sentence;
 }
 
+- (CGRect)rectForWordAtPoint:(CGPoint)point {
+    NSLayoutManager *layoutManager = self.layoutManager;
+    NSTextStorage *textStorage = layoutManager.textStorage;
+    
+    NSUInteger charIndex = [self _charIndexAtPoint:point];
+    
+    if ([[NSCharacterSet letterCharacterSet] characterIsMember:[textStorage.string characterAtIndex:charIndex]]) {
+        NSRange wordCharacterRange = [self _wordThatContainsCharacter:charIndex string:textStorage.string];
+        return [self rectForCharactersInRange:wordCharacterRange];
+    } else {
+        return CGRectZero;
+    }
+}
+
+- (CGRect)rectForCharactersInRange:(NSRange)range {
+    NSLayoutManager *layoutManager = self.layoutManager;
+    return [layoutManager boundingRectForGlyphRange:range inTextContainer:self.textContainer];;
+}
+
 #pragma mark - Private Methods
 
 - (void)_performDrawTasks:(NSArray<JHParserDrawTask *> *)drawTasks {
     if (!drawTasks&&drawTasks.count==0) {
         return;
     }
-
+    
     for (CALayer *layers in self.drawLayers) {
         [layers removeFromSuperlayer];
     }

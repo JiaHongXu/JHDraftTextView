@@ -17,4 +17,7 @@
 
 - (NSString *)wordAtPoint:(CGPoint)point;
 - (NSString *)sentenceAtPoint:(CGPoint)point;
+
+- (CGRect)rectForCharactersInRange:(NSRange)range;
+- (CGRect)rectForWordAtPoint:(CGPoint)point;
 @end
