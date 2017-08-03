@@ -155,8 +155,8 @@
             }
             UILabel *prefixLabel = [[UILabel alloc] init];
             prefixLabel.attributedText = prefixStr;
-            size = [prefixStr.string sizeWithFont:prefixLabel.font constrainedToSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX)];
-            
+            NSRange range = NSMakeRange(0, prefixStr.length);
+            size = [prefixStr.string boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:[prefixStr attributesAtIndex:0 effectiveRange:&range] context:nil].size;
             [attrStr insertAttributedString:prefixStr atIndex:0];
             paragraph.firstLineHeadIndent = headIndent-size.width;
             paragraph.headIndent = headIndent;

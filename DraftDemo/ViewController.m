@@ -10,7 +10,7 @@
 
 #import "JHDraftTextView.h"
 
-@interface ViewController ()
+@interface ViewController () <UITextViewDelegate>
 
 @property (strong, nonatomic)  JHDraftTextView *draftView;
 
@@ -35,6 +35,7 @@
     [self.view addGestureRecognizer:rightSwipeRecognizer];
     
     _draftView = [[JHDraftTextView alloc] initWithFrame:self.view.frame];
+    _draftView.delegate = self;
     [_draftView setAttributedTextWithDraftJsonDic:jsonDic];
     _draftView.editable = NO;
     [self.view addSubview:_draftView];
@@ -42,6 +43,10 @@
 
 - (void)viewWillLayoutSubviews {
     _draftView.frame = self.view.bounds;
+}
+
+- (void)textViewDidChangeSelection:(UITextView *)textView {
+    NSLog(@"%@", [textView.text substringWithRange:textView.selectedRange]);
 }
 
 - (void)handleTap:(UITapGestureRecognizer*)tapRecognizer {

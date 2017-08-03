@@ -260,12 +260,12 @@
 "depth": 0,
 "inlineStyleRanges": [],
 "entityRanges": [
-                 {
-                 "offset": 0,
-                 "length": 5,
-                 "key": 0
-                 }
-                 ],
+{
+"offset": 0,
+"length": 5,
+"key": 0
+}
+],
 "data": {}
 },
 ],
