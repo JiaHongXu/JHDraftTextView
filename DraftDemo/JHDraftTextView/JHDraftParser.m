@@ -13,13 +13,6 @@
 @interface JHDraftParser ()
 @property (nonatomic, strong) NSMutableAttributedString *mutableAttrStr;
 @property (nonatomic, strong) NSMutableArray<JHParserDrawTask *> *drawTasks;
-
-// <@(JHDraftTextType), NSParagraphStyle*>
-@property (nonatomic, strong) NSDictionary<NSNumber *, NSParagraphStyle *> *paragraphStyles;
-// <@(JHDraftTextType), NSString *>
-@property (nonatomic, strong) NSDictionary<NSNumber *,NSString *> *fonts;
-// <@(JHDraftTextType), @(CGFloat)>
-@property (nonatomic, strong) NSDictionary<NSNumber *,NSNumber *> *fontSizes;
 @end
 
 @implementation JHDraftParser

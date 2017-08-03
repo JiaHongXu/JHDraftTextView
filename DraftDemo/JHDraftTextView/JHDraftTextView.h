@@ -7,8 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "JHDraftParser.h"
 
 @interface JHDraftTextView : UITextView
+
+@property (nonatomic, strong) JHDraftParser *parser;
 
 - (void)setAttributedTextWithDraftJsonDic:(NSDictionary *)jsonDic;
 

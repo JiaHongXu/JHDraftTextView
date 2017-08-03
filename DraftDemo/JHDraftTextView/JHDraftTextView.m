@@ -7,11 +7,9 @@
 //
 
 #import "JHDraftTextView.h"
-#import "JHDraftParser.h"
 
 @interface JHDraftTextView () <JHDraftParserDelegate>
 
-@property (nonatomic, strong) JHDraftParser *parser;
 @property (nonatomic, strong) NSMutableArray<CALayer *> *drawLayers;
 
 @end

@@ -24,16 +24,18 @@
 @property (nonatomic, assign) NSUInteger fisrtIndex;
 @property (nonatomic, assign) NSUInteger lastIndex;
 
-// <@(JHDraftTextType), NSParagraphStyle*>
-@property (nonatomic, strong, readonly) NSDictionary<NSNumber *, NSParagraphStyle *> *paragraphStyles;
-// <@(JHDraftTextStyle), NSString *>
-@property (nonatomic, strong, readonly) NSDictionary<NSNumber *, NSString *> *fonts;
-// <@(JHDraftTextType), @(CGFloat)>
-@property (nonatomic, strong, readonly) NSDictionary<NSNumber *, NSNumber *> *fontSizes;
-
 @end
 
 @interface JHDraftParser : NSObject
+
+// <@(JHDraftTextType), NSParagraphStyle*>
+@property (nonatomic, strong) NSDictionary<NSNumber *, NSParagraphStyle *> *paragraphStyles;
+
+// <@(JHDraftTextStyle), NSString *>
+@property (nonatomic, strong) NSDictionary<NSNumber *, NSString *> *fonts;
+
+// <@(JHDraftTextType), @(CGFloat)>
+@property (nonatomic, strong) NSDictionary<NSNumber *, NSNumber *> *fontSizes;
 
 @property (nonatomic, weak) id<JHDraftParserDelegate> delegate;
 
