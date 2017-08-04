@@ -90,7 +90,7 @@
 
 - (CGRect)rectForCharactersInRange:(NSRange)range {
     NSLayoutManager *layoutManager = self.layoutManager;
-    return [layoutManager boundingRectForGlyphRange:range inTextContainer:self.textContainer];;
+    return [layoutManager boundingRectForGlyphRange:range inTextContainer:self.textContainer];
 }
 
 #pragma mark - Private Methods
@@ -115,9 +115,12 @@
                 CALayer *quoteBackgroundLayer = [[CALayer alloc] init];
                 quoteBackgroundLayer.backgroundColor = [UIColor colorWithWhite:0.5 alpha:0.1].CGColor;
                 quoteBackgroundLayer.frame = quoteBackground;
-                [self.layer insertSublayer:quoteBackgroundLayer atIndex:(unsigned)self.layer.sublayers.count];
                 
                 [self.drawLayers addObject:quoteBackgroundLayer];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self.layer insertSublayer:quoteBackgroundLayer atIndex:(unsigned)self.layer.sublayers.count];
+                });
+                
             }
                 break;
             case JHDraftTextTypeBlockQuote:
@@ -133,8 +136,11 @@
                 CALayer *quoteBackgroundLayer = [[CALayer alloc] init];
                 quoteBackgroundLayer.backgroundColor = [UIColor colorWithWhite:0.5 alpha:0.1].CGColor;
                 quoteBackgroundLayer.frame = quoteBackground;
-                [self.layer insertSublayer:quoteBackgroundLayer atIndex:(unsigned)self.layer.sublayers.count];
+                
                 [self.drawLayers addObject:quoteBackgroundLayer];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self.layer insertSublayer:quoteBackgroundLayer atIndex:(unsigned)self.layer.sublayers.count];
+                });
             }
                 break;
                 

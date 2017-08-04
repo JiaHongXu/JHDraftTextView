@@ -151,9 +151,11 @@
                                   options:0
                                  progress:nil
                                 completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, SDImageCacheType cacheType, BOOL finished, NSURL * _Nullable imageURL) {
-                                    attachment.image = image;
-                                    if (weakSelf.delegate) {
-                                        [weakSelf.delegate didUpdateAttributeText];
+                                    if (!error && image) {
+                                        attachment.image = image;
+                                        if (weakSelf.delegate) {
+                                            [weakSelf.delegate didUpdateAttributeText];
+                                        }                                        
                                     }
                                 }];
                 attachment.bounds = CGRectMake(0, 0, 300, 200);
